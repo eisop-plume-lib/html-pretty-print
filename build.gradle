@@ -14,13 +14,13 @@ plugins {
   id 'application'
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id 'com.github.johnrengelman.shadow' version '8.1.1'
+  id 'com.gradleup.shadow' version '8.3.5'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '4.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.45'
+  id 'org.checkerframework' version '0.6.48'
 }
 
 repositories {
@@ -28,22 +28,22 @@ repositories {
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
-ext.errorproneVersion = '2.31.0'
-
 ext {
+  errorproneVersion = '2.36.0'
   isJava11orHigher = JavaVersion.current() >= JavaVersion.VERSION_11
+  isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
+  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
 
 dependencies {
-  implementation 'com.google.guava:guava:33.4.0-jre'
   implementation 'org.ccil.cowan.tagsoup:tagsoup:1.2.1'
   implementation 'xom:xom:1.3.9'
 
-  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
-  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
-
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
 }
 
 application {
@@ -89,7 +89,7 @@ if (isJava11orHigher) {
   }
 }
 
-/// Error Prone linter
+// Error Prone linter
 
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
@@ -100,9 +100,10 @@ tasks.withType(JavaCompile).configureEach {
     disable('ExtendsObject')  // Incorrect when using the Checker Framework
     disable('ReferenceEquality') // Use Interning Checker instead.
   }
+  options.errorprone.enabled = isJava17orHigher
 }
 
-/// Checker Framework pluggable type-checking
+// Checker Framework pluggable type-checking
 
 apply plugin: 'org.checkerframework'
 
@@ -161,7 +162,7 @@ checkerFramework {
   ]
 }
 
-/// Javadoc
+// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -194,7 +195,7 @@ task requireJavadoc(type: JavaExec) {
 }
 check.dependsOn requireJavadoc
 
-/// Emacs support
+// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {
